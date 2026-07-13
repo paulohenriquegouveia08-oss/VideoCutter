@@ -1,0 +1,16 @@
+node_modules/
+dist/
+.env
+.env.local
+storage/originals/*
+!storage/originals/.gitkeep
+storage/audio/*
+!storage/audio/.gitkeep
+storage/subtitles/*
+!storage/subtitles/.gitkeep
+storage/clips/*
+!storage/clips/.gitkeep
+storage/previews/*
+!storage/previews/.gitkeep
+*.log
+.DS_Store

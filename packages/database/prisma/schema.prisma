@@ -1,0 +1,172 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           String    @id @default(uuid())
+  name         String
+  email        String    @unique
+  passwordHash String    @map("password_hash")
+  createdAt    DateTime  @default(now()) @map("created_at")
+  updatedAt    DateTime  @updatedAt @map("updated_at")
+  projects     VideoProject[]
+
+  @@map("users")
+}
+
+model VideoProject {
+  id             String   @id @default(uuid())
+  userId         String   @map("user_id")
+  name           String
+  originalFileName String @map("original_file_name")
+  systemFileName String   @map("system_file_name")
+  filePath       String   @map("file_path")
+  fileSize       BigInt   @map("file_size")
+  durationSeconds Float  @map("duration_seconds")
+  width          Int
+  height         Int
+  orientation    String
+  codec          String?
+  fps            Float?
+  hasAudio       Boolean  @default(true) @map("has_audio")
+  status         String   @default("UPLOADED")
+  createdAt      DateTime @default(now()) @map("created_at")
+  updatedAt      DateTime @updatedAt @map("updated_at")
+
+  user           User             @relation(fields: [userId], references: [id])
+  configuration  ProcessingConfiguration?
+  transcript     Transcript?
+  clips          VideoClip[]
+  jobs           ProcessingJob[]
+
+  @@map("video_projects")
+}
+
+model ProcessingConfiguration {
+  id                     String  @id @default(uuid())
+  projectId              String  @unique @map("project_id")
+  splitMethod            String  @map("split_method")
+  selectionMode          String  @map("selection_mode")
+  requestedClipCount     Int?    @map("requested_clip_count")
+  targetDurationSeconds  Float?  @map("target_duration_seconds")
+  minimumDurationSeconds Float?  @default(15) @map("minimum_duration_seconds")
+  maximumDurationSeconds Float?  @default(180) @map("maximum_duration_seconds")
+  maximumClipCount       Int?    @default(30) @map("maximum_clip_count")
+  outputOrientation      String  @map("output_orientation")
+  outputAspectRatio      String  @map("output_aspect_ratio")
+  cropMode               String  @default("BLUR_BG") @map("crop_mode")
+  generateSubtitles      Boolean @default(true) @map("generate_subtitles")
+  subtitleStyle          String  @default("DYNAMIC") @map("subtitle_style")
+  subtitlePosition       String  @default("BOTTOM_CENTER") @map("subtitle_position")
+  subtitleLanguage       String  @default("pt") @map("subtitle_language")
+  createdAt              DateTime @default(now()) @map("created_at")
+  updatedAt              DateTime @updatedAt @map("updated_at")
+
+  project VideoProject @relation(fields: [projectId], references: [id])
+
+  @@map("processing_configurations")
+}
+
+model Transcript {
+  id        String   @id @default(uuid())
+  projectId String   @unique @map("project_id")
+  language  String
+  fullText  String   @map("full_text")
+  filePath  String?  @map("file_path")
+  status    String   @default("PENDING")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  project  VideoProject        @relation(fields: [projectId], references: [id])
+  segments TranscriptSegment[]
+  srtFile  SrtFile?
+
+  @@map("transcripts")
+}
+
+model TranscriptSegment {
+  id           String  @id @default(uuid())
+  transcriptId String  @map("transcript_id")
+  startSeconds Float   @map("start_seconds")
+  endSeconds   Float   @map("end_seconds")
+  text         String
+  confidence   Float?
+
+  transcript Transcript @relation(fields: [transcriptId], references: [id])
+
+  @@map("transcript_segments")
+}
+
+model SrtFile {
+  id           String  @id @default(uuid())
+  transcriptId String  @unique @map("transcript_id")
+  content      String
+  filePath     String  @map("file_path")
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  transcript Transcript @relation(fields: [transcriptId], references: [id])
+
+  @@map("srt_files")
+}
+
+model VideoClip {
+  id             String   @id @default(uuid())
+  projectId      String   @map("project_id")
+  sequence       Int
+  startSeconds   Float    @map("start_seconds")
+  endSeconds     Float    @map("end_seconds")
+  durationSeconds Float   @map("duration_seconds")
+  title          String?
+  transcriptText String?  @map("transcript_text")
+  filePath       String?  @map("file_path")
+  thumbnailPath  String?  @map("thumbnail_path")
+  previewPath    String?  @map("preview_path")
+  status         String   @default("PENDING")
+  score          Float?
+  approved       Boolean  @default(false)
+  createdAt      DateTime @default(now()) @map("created_at")
+  updatedAt      DateTime @updatedAt @map("updated_at")
+
+  project    VideoProject    @relation(fields: [projectId], references: [id])
+  subtitles  SubtitleFile[]
+
+  @@map("video_clips")
+}
+
+model SubtitleFile {
+  id        String   @id @default(uuid())
+  clipId    String   @map("clip_id")
+  format    String
+  style     String
+  filePath  String?  @map("file_path")
+  content   String?
+  createdAt DateTime @default(now()) @map("created_at")
+
+  clip VideoClip @relation(fields: [clipId], references: [id])
+
+  @@map("subtitle_files")
+}
+
+model ProcessingJob {
+  id           String    @id @default(uuid())
+  projectId    String    @map("project_id")
+  type         String
+  status       String    @default("PENDING")
+  progress     Int       @default(0)
+  message      String?
+  attempts     Int       @default(0)
+  errorMessage String?   @map("error_message")
+  startedAt    DateTime? @map("started_at")
+  finishedAt   DateTime? @map("finished_at")
+  createdAt    DateTime  @default(now()) @map("created_at")
+  updatedAt    DateTime  @updatedAt @map("updated_at")
+
+  project VideoProject @relation(fields: [projectId], references: [id])
+
+  @@map("processing_jobs")
+}
