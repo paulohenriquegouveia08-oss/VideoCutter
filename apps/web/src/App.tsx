@@ -4,6 +4,8 @@ import { AuthProvider, useAuth } from './hooks/useAuth';
 import { LoginPage } from './pages/Login';
 import { RegisterPage } from './pages/Register';
 import { DashboardPage } from './pages/Dashboard';
+import { ConfigurePage } from './pages/Configure';
+import { ResultsPage } from './pages/Results';
 
 const queryClient = new QueryClient();
 
@@ -23,6 +25,8 @@ export function App() {
             <Route path="/login" element={<LoginPage />} />
             <Route path="/register" element={<RegisterPage />} />
             <Route path="/" element={<ProtectedRoute><DashboardPage /></ProtectedRoute>} />
+            <Route path="/configure/:id" element={<ProtectedRoute><ConfigurePage /></ProtectedRoute>} />
+            <Route path="/results/:id" element={<ProtectedRoute><ResultsPage /></ProtectedRoute>} />
             <Route path="*" element={<Navigate to="/" />} />
           </Routes>
         </BrowserRouter>

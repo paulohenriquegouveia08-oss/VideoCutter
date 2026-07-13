@@ -7,6 +7,7 @@ import { UploadModule } from './upload/upload.module';
 import { ConfigurationModule } from './configuration/configuration.module';
 import { JobsModule } from './jobs/jobs.module';
 import { ClipsModule } from './clips/clips.module';
+import { DownloadModule } from './download/download.module';
 
 @Module({
   imports: [
@@ -18,6 +19,7 @@ import { ClipsModule } from './clips/clips.module';
     ConfigurationModule,
     JobsModule,
     ClipsModule,
+    DownloadModule,
   ],
 })
 export class AppModule {}
