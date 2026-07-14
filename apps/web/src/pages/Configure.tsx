@@ -47,7 +47,7 @@ export function ConfigurePage() {
 
   const processMutation = useMutation({
     mutationFn: () => api(`/projects/${id}/process`, { token: token!, method: 'POST' }),
-    onSuccess: () => navigate(`/results/${id}`),
+    onSuccess: () => navigate(`/processing/${id}`),
   });
 
   const handleSave = async () => {

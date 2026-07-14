@@ -6,6 +6,7 @@ import { RegisterPage } from './pages/Register';
 import { DashboardPage } from './pages/Dashboard';
 import { UploadPage } from './pages/Upload';
 import { ConfigurePage } from './pages/Configure';
+import { ProcessingPage } from './pages/Processing';
 import { ResultsPage } from './pages/Results';
 
 const queryClient = new QueryClient();
@@ -28,6 +29,7 @@ export function App() {
             <Route path="/" element={<ProtectedRoute><DashboardPage /></ProtectedRoute>} />
             <Route path="/upload/:id" element={<ProtectedRoute><UploadPage /></ProtectedRoute>} />
             <Route path="/configure/:id" element={<ProtectedRoute><ConfigurePage /></ProtectedRoute>} />
+            <Route path="/processing/:id" element={<ProtectedRoute><ProcessingPage /></ProtectedRoute>} />
             <Route path="/results/:id" element={<ProtectedRoute><ResultsPage /></ProtectedRoute>} />
             <Route path="*" element={<Navigate to="/" />} />
           </Routes>

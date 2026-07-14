@@ -1,9 +1,19 @@
-import { Injectable, NotFoundException, ForbiddenException, BadRequestException } from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException, OnModuleInit } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
+import Redis from 'ioredis';
+
+const REDIS_URL = process.env.REDIS_URL || 'redis://localhost:6381';
+const QUEUE_NAME = 'video_processing';
 
 @Injectable()
-export class JobsService {
+export class JobsService implements OnModuleInit {
+  private redis: Redis;
+
   constructor(private prisma: PrismaService) {}
+
+  onModuleInit() {
+    this.redis = new Redis(REDIS_URL);
+  }
 
   async startProcessing(userId: string, projectId: string) {
     const project = await this.prisma.videoProject.findUnique({ where: { id: projectId } });
@@ -33,10 +43,33 @@ export class JobsService {
       },
     });
 
+    const queuePayload = {
+      project_id: projectId,
+      job_id: job.id,
+      config: {
+        splitMethod: config.splitMethod,
+        selectionMode: config.selectionMode,
+        requestedClipCount: config.requestedClipCount,
+        targetDurationSeconds: config.targetDurationSeconds,
+        minimumDurationSeconds: config.minimumDurationSeconds,
+        maximumDurationSeconds: config.maximumDurationSeconds,
+        maximumClipCount: config.maximumClipCount,
+        outputOrientation: config.outputOrientation,
+        outputAspectRatio: config.outputAspectRatio,
+        cropMode: config.cropMode,
+        generateSubtitles: config.generateSubtitles,
+        subtitleStyle: config.subtitleStyle,
+        subtitlePosition: config.subtitlePosition,
+        subtitleLanguage: config.subtitleLanguage,
+      },
+    };
+
+    await this.redis.lpush(QUEUE_NAME, JSON.stringify(queuePayload));
+
     return {
       jobId: job.id,
       status: 'QUEUED',
-      message: 'Processing job created. Worker will pick it up shortly.',
+      message: 'Processing job queued. Worker will process shortly.',
     };
   }
 

@@ -88,6 +88,7 @@ export function DashboardPage() {
                 onClick={() => {
                   if (p.status === 'CREATED') navigate(`/upload/${p.id}`);
                   else if (p.status === 'UPLOADED') navigate(`/configure/${p.id}`);
+                  else if (p.status === 'PROCESSING') navigate(`/processing/${p.id}`);
                   else navigate(`/results/${p.id}`);
                 }}>
                 <h3 className="font-medium mb-1">{p.name}</h3>
