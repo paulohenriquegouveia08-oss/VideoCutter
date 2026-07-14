@@ -29,10 +29,11 @@ export function DashboardPage() {
 
   const createMutation = useMutation({
     mutationFn: (name: string) => api<{ id: string }>('/projects', { token: token!, method: 'POST', body: JSON.stringify({ name }) }),
-    onSuccess: (data) => {
+    onSuccess: (data: any) => {
       queryClient.invalidateQueries({ queryKey: ['projects'] });
       setShowNew(false);
       setProjectName('');
+      navigate(`/upload/${data.id}`);
     },
   });
 
@@ -84,7 +85,11 @@ export function DashboardPage() {
             {projects.map((p) => (
               <div key={p.id}
                 className="p-4 bg-gray-900 border border-gray-800 rounded-xl hover:border-gray-700 transition-colors cursor-pointer"
-                onClick={() => p.status === 'CREATED' ? navigate(`/configure/${p.id}`) : navigate(`/results/${p.id}`)}>
+                onClick={() => {
+                  if (p.status === 'CREATED') navigate(`/upload/${p.id}`);
+                  else if (p.status === 'UPLOADED') navigate(`/configure/${p.id}`);
+                  else navigate(`/results/${p.id}`);
+                }}>
                 <h3 className="font-medium mb-1">{p.name}</h3>
                 <p className="text-xs text-gray-500 mb-3">{p.originalFileName || 'Sem arquivo'}</p>
                 <div className="flex items-center justify-between">
